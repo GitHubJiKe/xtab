@@ -1,0 +1,15 @@
+{
+    "manifest_version": 3,
+    "name": "XTab",
+    "version": "1.0.0",
+    "description": "A custom new tab page built with React, TypeScript, Vite and Shadcn UI.",
+    "chrome_url_overrides": {
+        "newtab": "index.html"
+    },
+    "permissions": [],
+    "icons": {
+        "16": "XTab.png",
+        "48": "XTab.png",
+        "128": "XTab.png"
+    }
+}
