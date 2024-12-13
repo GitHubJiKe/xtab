@@ -5,18 +5,18 @@
         "icon": "https://www.zhihu.com/favicon.ico"
     },
     {
-        "name": "微博",
-        "url": "https://weibo.com",
-        "icon": "https://weibo.com/favicon.ico"
-    },
-    {
-        "name": "百度",
-        "url": "https://www.baidu.com",
-        "icon": "https://www.baidu.com/favicon.ico"
-    },
-    {
         "name": "Github",
         "url": "https://github.com",
         "icon": "https://github.com/favicon.ico"
+    },
+    {
+        "name": "阮一峰网络日志",
+        "url": "https://www.ruanyifeng.com/blog/",
+        "icon": "https://www.ruanyifeng.com/favicon.ico"
+    },
+    {
+        "name": "Google AI Studio",
+        "url": "https://aistudio.google.com/",
+        "icon": "https://www.gstatic.com/aistudio/ai_studio_favicon_16x16.ico"
     }
 ]
