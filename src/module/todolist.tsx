@@ -83,7 +83,7 @@ export function TodoList() {
   return (
     <Card className="w-full">
       <CardContent>
-        <div className="flex space-x-2 my-4">
+        <div className="flex space-x-2 my-4 ">
           <Input
             value={newTodo}
             onChange={(e) => setNewTodo(e.target.value)}
@@ -127,7 +127,7 @@ export function TodoList() {
           </Popover>
           <Button onClick={addTodo}>添加</Button>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-[40vh] overflow-y-auto">
           {todos.map((todo) => (
             <div
               key={todo.id}
