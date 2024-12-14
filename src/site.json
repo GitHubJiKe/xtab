@@ -1,8 +1,28 @@
 [
     {
+        "name": "X",
+        "url": "https://www.x.com",
+        "icon": "https://www.x.com/favicon.ico"
+    },
+    {
         "name": "知乎",
         "url": "https://www.zhihu.com",
         "icon": "https://www.zhihu.com/favicon.ico"
+    },
+    {
+        "name": "Ycombinator",
+        "url": "https://news.ycombinator.com/",
+        "icon": "https://news.ycombinator.com/favicon.ico"
+    },
+    {
+        "name": "YouTube",
+        "url": "https://www.youtube.com",
+        "icon": "https://www.youtube.com/favicon.ico"
+    },
+    {
+        "name": "Bilibili",
+        "url": "https://www.bilibili.com/",
+        "icon": "https://www.bilibili.com/favicon.ico"
     },
     {
         "name": "Github",
@@ -18,5 +38,15 @@
         "name": "Google AI Studio",
         "url": "https://aistudio.google.com/",
         "icon": "https://www.gstatic.com/aistudio/ai_studio_favicon_16x16.ico"
+    },
+    {
+        "name": "ChatGPT",
+        "url": "https://chatgpt.com/",
+        "icon": "https://chatgpt.com/favicon.ico"
+    },
+    {
+        "name": "豆包",
+        "url": "https://www.doubao.com/chat/",
+        "icon": "https://lf-flow-web-cdn.doubao.com/obj/flow-doubao/doubao/web/logo-icon.png"
     }
 ]
