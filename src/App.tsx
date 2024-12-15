@@ -474,6 +474,7 @@ function App() {
             </div>
             <div className="p-4">
               <Textarea
+                className="w-full text-black"
                 placeholder="请输入搜索关键词"
                 onKeyDown={onKeyDownOfTextArea}
                 value={aiChat}
