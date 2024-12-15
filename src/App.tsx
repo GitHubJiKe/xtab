@@ -441,11 +441,15 @@ function App() {
                         style={{ width: 30, height: 30 }}
                         className="mb-4"
                       >
-                        <AvatarFallback className="text-black">
+                        <AvatarFallback className="text-black bg-white">
                           {item.type === "question" ? "我" : "AI"}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 ml-2 whitespace-pre-wrap overflow-auto w-[520px]">
+                      <div
+                        className={`flex-1 ml-2 whitespace-pre-wrap overflow-auto w-[520px] ${
+                          item.type === "question" ? "text-white" : "text-black"
+                        }`}
+                      >
                         {item.type === "question" ? (
                           item.content
                         ) : (
