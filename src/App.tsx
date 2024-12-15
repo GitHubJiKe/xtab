@@ -57,10 +57,10 @@ console.log(import.meta.env.VITE_GOOGLE_API_KEY);
 function initStorage() {
   let _sitesArr = sitesArr;
   const sites = JSON.parse(localStorage.getItem("sitesArr") || "[]");
-  if (sites.length < sitesArr.length) {
-    _sitesArr = [..._sitesArr, ...sites];
-  }
-  localStorage.setItem("sitesArr", JSON.stringify(_sitesArr));
+  localStorage.setItem(
+    "sitesArr",
+    JSON.stringify(sites.length ? sites : _sitesArr)
+  );
 }
 
 initStorage();
@@ -357,13 +357,16 @@ function App() {
         <Dialog.Root open={opened} onOpenChange={setOpened}>
           <Dialog.Portal>
             <Dialog.Overlay className="DialogOverlay" />
-            <Dialog.Content className="DialogContent">
+            <Dialog.Content
+              className="DialogContent"
+              style={{ zIndex: 99999999 }}
+            >
               <Dialog.Title className="DialogTitle">添加网站</Dialog.Title>
               <Dialog.Description className="DialogDescription">
                 填写网站名称和地址
               </Dialog.Description>
               <Input
-                className="mb-4"
+                className="mb-4 text-black"
                 placeholder="网站名称"
                 value={siteName}
                 onChange={(e) => {
@@ -371,7 +374,7 @@ function App() {
                 }}
               />
               <Input
-                className="mb-4"
+                className="mb-4 text-black"
                 placeholder="网站地址"
                 value={siteUrl}
                 onChange={(e) => {
