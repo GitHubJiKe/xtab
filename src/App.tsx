@@ -418,7 +418,7 @@ function App() {
           direction="right"
         >
           <div className="flex flex-col h-full justify-between">
-            <div className="flex items-center justify-between pr-4">
+            <div className="flex items-center justify-between pr-4 text-black">
               <div className="p-4 cursor-pointer">
                 <Cross1Icon onClick={() => setIsDrawerOpen(false)} />
               </div>
