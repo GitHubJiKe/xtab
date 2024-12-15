@@ -6,9 +6,27 @@ import "./index.css";
 import "./App.css";
 import dayjs from "dayjs";
 import sitesArr from "./site.json";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { CrossCircledIcon } from "@radix-ui/react-icons";
+import {
+  CrossCircledIcon,
+  HamburgerMenuIcon,
+  Cross1Icon,
+  CopyIcon,
+} from "@radix-ui/react-icons";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import Markdown from "react-markdown";
+import rehypeHighlight from "rehype-highlight";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
+// import component 👇
+import Drawer from "react-modern-drawer";
+import { ToastContainer, toast as toastify } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
+//import styles 👇
+import "react-modern-drawer/dist/index.css";
+
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   ResizableHandle,
@@ -30,6 +48,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { TodoList } from "./module/todolist";
+import { Textarea } from "./components/ui/textarea";
+import { askAI, getAIContext } from "./lib/utils";
+import hljs from "highlight.js";
+
+console.log(import.meta.env.VITE_GOOGLE_API_KEY);
 
 function initStorage() {
   let _sitesArr = sitesArr;
@@ -49,6 +72,7 @@ interface Site {
 }
 
 function App() {
+  hljs.highlightAll();
   const { toast } = useToast();
   const [timeNow, setNow] = useState(dayjs().format("HH:mm:ss"));
   const [today, setToday] = useState(dayjs().format("YYYY/MM/DD"));
@@ -65,16 +89,13 @@ function App() {
   const [siteName, setSiteName] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
   const [deleteSite, setDeleteSite] = useState<Site | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const [isSimple, setIsSimple] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("isSimple") || "false");
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
-  });
   const [isEditing, setIsEditing] = useState(false);
+  const [aiChat, setAiChat] = useState("");
+  const [aiChatList, setAiChatList] = useState<
+    Array<{ content: string; type: string }>
+  >([]);
 
   const [searchList, setSearchList] = useState<
     Array<{ keyword: string; time: string }>
@@ -177,10 +198,47 @@ function App() {
     return () => {};
   }, [searchList]);
 
+  const onKeyDownOfTextArea = (e: { target: any; key: string }) => {
+    if (e.key === "Enter") {
+      // @ts-ignore
+      e.preventDefault(); // 阻止默认的换行行为
+      setAiChatList([
+        ...aiChatList,
+        { content: e.target.value, type: "question" },
+      ]);
+      setAiChat("");
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem("isSimple", JSON.stringify(isSimple));
-    return () => {};
-  }, [isSimple]);
+    if (aiChatList.length % 2 === 1 && aiChatList.length > 0) {
+      askAI(
+        aiChatList[aiChatList.length - 1].content,
+        getAIContext(aiChatList)
+      ).then((res) => {
+        setAiChatList([...aiChatList, { content: res, type: "answer" }]);
+      });
+    }
+  }, [aiChatList.length]);
+
+  const aiContentRef = useRef();
+
+  useEffect(() => {
+    if (aiContentRef.current) {
+      // @ts-ignore
+      aiContentRef.current.scrollTop = aiContentRef.current.scrollHeight;
+    }
+  }, [aiChatList.length]);
+
+  const copyToClipboard = (content: string) => {
+    const el = document.createElement("textarea");
+    el.value = content;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+    toastify("已复制到剪贴板");
+  };
 
   return (
     <ThemeProvider
@@ -204,11 +262,8 @@ function App() {
               {today}~{timeNow}
             </label>
           </h1>
-          <Button
-            variant={isSimple ? "default" : "secondary"}
-            onClick={() => setIsSimple(!isSimple)}
-          >
-            精简
+          <Button onClick={() => setIsDrawerOpen(true)}>
+            <HamburgerMenuIcon />
           </Button>
         </header>
         <div className="mb-20 text-center flex justify-center mt-4">
@@ -230,13 +285,11 @@ function App() {
                 >
                   <a
                     href={site.url}
-                    className={`flex items-center gap-2 cursor-pointer ${
-                      isSimple ? "justify-center" : "justify-between"
-                    } h-full text-sm`}
+                    className={`flex items-center gap-2 cursor-pointer justify-between h-full text-sm`}
                     target="_blank"
                   >
                     {site.name}
-                    {!isSimple && <img src={site.icon} className="w-5 h-5" />}
+                    <img src={site.icon} className="w-5 h-5" />
                   </a>
                   {isEditing && (
                     <CrossCircledIcon
@@ -300,6 +353,7 @@ function App() {
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>
+
         <Dialog.Root open={opened} onOpenChange={setOpened}>
           <Dialog.Portal>
             <Dialog.Overlay className="DialogOverlay" />
@@ -333,9 +387,8 @@ function App() {
             </Dialog.Content>
           </Dialog.Portal>
         </Dialog.Root>
-
         <Toaster />
-
+        <ToastContainer />
         <AlertDialog open={alertOpened}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -354,6 +407,80 @@ function App() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Drawer
+          open={isDrawerOpen}
+          size={600}
+          enableOverlay={false}
+          direction="right"
+        >
+          <div className="flex flex-col h-full justify-between">
+            <div className="flex items-center justify-between pr-4">
+              <div className="p-4 cursor-pointer">
+                <Cross1Icon onClick={() => setIsDrawerOpen(false)} />
+              </div>
+              <h3 className="text-lg fw-bold">AI对话</h3>
+            </div>
+            {/* @ts-ignore */}
+            <div className="flex-1 overflow-y-auto px-4" ref={aiContentRef}>
+              <div className="flex flex-col gap-4">
+                {aiChatList.map((item, index) => {
+                  return (
+                    <div
+                      key={index}
+                      className={
+                        item.type === "question"
+                          ? "bg-blue-500 text-white p-4 rounded-lg flex flex-col flex-wrap"
+                          : "bg-gray-200 p-4 rounded-lg flex flex-wrap flex-col"
+                      }
+                    >
+                      <Avatar
+                        style={{ width: 30, height: 30 }}
+                        className="mb-4"
+                      >
+                        <AvatarFallback className="text-black">
+                          {item.type === "question" ? "我" : "AI"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 ml-2 whitespace-pre-wrap overflow-auto w-[520px]">
+                        {item.type === "question" ? (
+                          item.content
+                        ) : (
+                          <Markdown
+                            rehypePlugins={[
+                              rehypeHighlight,
+                              rehypeRaw,
+                              rehypeSanitize,
+                            ]}
+                          >
+                            {item.content}
+                          </Markdown>
+                        )}
+                      </div>
+                      {item.type === "answer" && (
+                        <div className="flex items-center justify-end cursor-pointer">
+                          <CopyIcon
+                            onClick={() => copyToClipboard(item.content)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="p-4">
+              <Textarea
+                placeholder="请输入搜索关键词"
+                onKeyDown={onKeyDownOfTextArea}
+                value={aiChat}
+                onChange={(e) => {
+                  setAiChat(e.target.value);
+                }}
+              />
+            </div>
+          </div>
+        </Drawer>
       </div>
     </ThemeProvider>
   );
