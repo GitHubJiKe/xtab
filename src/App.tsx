@@ -266,11 +266,28 @@ function App() {
         if (insertError) throw insertError;
       } else {
         // 如果数据库已有数据，执行 upsert 操作
-        const sitesToUpsert = sites.map(site => ({
+        const sitesToUpsert = existingSites.map(site => ({
           ...site,
           id: existingSites.find(es => es.url === site.url)?.id,
           updated_at: new Date().toISOString()
         }));
+
+        const newSites = sites.filter(v=>{
+          if (existingSites.find(i=>i.name !==v.name)) {
+            return true
+          }
+
+          return false
+        })
+
+        const { error: insertError } = await supabase
+        .from('sites')
+        .insert(newSites.map(site => ({
+          ...site,
+          updated_at: new Date().toISOString()
+        })));
+
+        if (insertError) throw insertError;
 
         const { error: upsertError } = await supabase
           .from('sites')
