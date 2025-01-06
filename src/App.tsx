@@ -51,8 +51,13 @@ import { TodoList } from "./module/todolist";
 import { Textarea } from "./components/ui/textarea";
 import { askAI, getAIContext } from "./lib/utils";
 import hljs from "highlight.js";
+import { createClient } from "@supabase/supabase-js";
 
 console.log(import.meta.env.VITE_GOOGLE_API_KEY);
+
+const supabaseUrl = "https://ulxzzlzxrhdndksbsqox.supabase.co";
+const supabaseAnonKey = import.meta.env.VITE__SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 function initStorage() {
   let _sitesArr = sitesArr;
@@ -240,6 +245,54 @@ function App() {
     toastify("已复制到剪贴板");
   };
 
+  const syncSitesToDatabase = async () => {
+    try {
+      // 先获取数据库中的所有站点
+      const { data: existingSites, error: fetchError } = await supabase
+        .from('sites')
+        .select('*');
+
+      if (fetchError) throw fetchError;
+
+      if (!existingSites || existingSites.length === 0) {
+        // 如果数据库为空，执行全量插入
+        const { error: insertError } = await supabase
+          .from('sites')
+          .insert(sites.map(site => ({
+            ...site,
+            updated_at: new Date().toISOString()
+          })));
+
+        if (insertError) throw insertError;
+      } else {
+        // 如果数据库已有数据，执行 upsert 操作
+        const sitesToUpsert = sites.map(site => ({
+          ...site,
+          id: existingSites.find(es => es.url === site.url)?.id,
+          updated_at: new Date().toISOString()
+        }));
+
+        const { error: upsertError } = await supabase
+          .from('sites')
+          .upsert(sitesToUpsert, {
+            onConflict: 'url',
+            ignoreDuplicates: false
+          });
+
+        if (upsertError) throw upsertError;
+      }
+
+      toast({ title: "同步成功", variant: "default" });
+    } catch (error) {
+      console.error('Error syncing sites:', error);
+      toast({ 
+        title: "同步失败", 
+        description: (error as Error).message, 
+        variant: "destructive" 
+      });
+    }
+  };
+
   return (
     <ThemeProvider
       attribute="class"
@@ -262,9 +315,12 @@ function App() {
               {today}~{timeNow}
             </label>
           </h1>
-          <Button onClick={() => setIsDrawerOpen(true)}>
-            <HamburgerMenuIcon />
-          </Button>
+          <div className="flex gap-4">
+            <Button onClick={() => setIsDrawerOpen(true)}>
+              <HamburgerMenuIcon />
+            </Button>
+           
+          </div>
         </header>
         <div className="mb-20 text-center flex justify-center mt-4">
           <Input
@@ -314,6 +370,12 @@ function App() {
                 onClick={() => setOpened(true)}
               >
                 添加
+              </Button>
+              <Button   
+                className="ml-4"
+                size={"sm"} 
+                onClick={syncSitesToDatabase}>
+                同步
               </Button>
             </div>
           </ResizablePanel>
